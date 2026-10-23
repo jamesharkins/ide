@@ -1,0 +1,1101 @@
+<title>Load-In</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: thin top bar, one 1180px column; a show page splits into the stage plot column and a 340px rail. */
+:root {
+  --bg: #F1F2F4; --surface: #FFFFFF; --surface-2: #F6F7F9; --ink: #16181D; --muted: #5B616E; --line: #DCDFE5;
+  --accent: #2A4BD7; --accent-soft: #E6EBFD; --accent-ink: #FFFFFF;
+  --ok: #1C7743; --ok-soft: #E0F2E7; --warn: #8F5500; --warn-soft: #FFEFD2; --bad: #B2311E; --bad-soft: #FBE2DE;
+  --chg: #6A3BC9; --chg-soft: #EEE6FC; --wait: #636A77;
+  --deck: #23262E; --deck-edge: #343843; --deck-grid: rgba(255,255,255,.055); --deck-ink: #D8DCE4; --deck-gear: #363B47;
+  --deck-muted: #8E95A4; --tape: #EEE9DA; --tape-ink: #222429; --deck-accent: #9AAEFF; --pin: #F2B33D; --pin-ink: #2A1E05;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --f-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0F1116; --surface: #171A20; --surface-2: #1C1F26; --ink: #E7E9EE; --muted: #9AA1AE; --line: #2A2F39;
+  --accent: #8BA1FF; --accent-soft: #1E2641; --accent-ink: #0C1020;
+  --ok: #5DC98B; --ok-soft: #13301F; --warn: #F1B54E; --warn-soft: #33270F; --bad: #FF8B79; --bad-soft: #3B1A15;
+  --chg: #B89CFF; --chg-soft: #2A2043; --wait: #9AA1AE;
+  --deck: #1B1E25; --deck-edge: #3A3F4B; --deck-grid: rgba(255,255,255,.05); --deck-gear: #323744;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0F1116; --surface: #171A20; --surface-2: #1C1F26; --ink: #E7E9EE; --muted: #9AA1AE; --line: #2A2F39;
+  --accent: #8BA1FF; --accent-soft: #1E2641; --accent-ink: #0C1020;
+  --ok: #5DC98B; --ok-soft: #13301F; --warn: #F1B54E; --warn-soft: #33270F; --bad: #FF8B79; --bad-soft: #3B1A15;
+  --chg: #B89CFF; --chg-soft: #2A2043; --wait: #9AA1AE;
+  --deck: #1B1E25; --deck-edge: #3A3F4B; --deck-grid: rgba(255,255,255,.05); --deck-gear: #323744;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+button, input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; letter-spacing: .005em; line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 4.4vw, 44px); }
+h2 { font-size: 26px; }
+h3 { font-size: 17px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+p { margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .09em; font-size: 13px; font-weight: 600; color: var(--muted); }
+.lede { color: var(--muted); max-width: 62ch; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Buttons */
+.btn, .btn-ghost { display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; padding: 9px 14px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--accent); white-space: nowrap; }
+.btn { background: var(--accent); color: var(--accent-ink); }
+.btn-ghost { background: transparent; color: var(--accent); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--accent); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.sm { padding: 5px 10px; font-size: 13px; }
+.linkish { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Top bar */
+.topbar { background: var(--surface); border-bottom: 1px solid var(--line); }
+.topbar-in { display: flex; align-items: center; gap: 14px 20px; flex-wrap: wrap; padding-block: 12px; }
+.mark { font-family: var(--f-display); font-weight: 700; font-size: 22px; letter-spacing: .12em; background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.mark i { width: 14px; height: 14px; background: var(--accent); display: inline-block; clip-path: polygon(0 0, 100% 0, 100% 34%, 34% 34%, 34% 100%, 0 100%); }
+.venue-name { color: var(--muted); font-size: 14px; }
+.nav { display: flex; gap: 4px; margin-left: auto; }
+.nav button { background: none; border: 0; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.nav button[aria-current="page"] { color: var(--ink); background: var(--surface-2); box-shadow: inset 0 -2px 0 var(--accent); }
+.live { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--wait); }
+.live.on::before { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
+.preview-band { background: var(--accent-soft); color: var(--ink); font-size: 14px; }
+.preview-band .wrap { padding-block: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* Pills */
+.pill { display: inline-flex; align-items: center; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; font-size: 13px; padding: 2px 11px; border-radius: 999px; border: 1.5px solid; white-space: nowrap; }
+.pill.locked { color: var(--ok); background: var(--ok-soft); }
+.pill.open { color: var(--warn); background: var(--warn-soft); }
+.pill.changed { color: var(--chg); background: var(--chg-soft); }
+.pill.ready { color: var(--accent); background: var(--accent-soft); }
+.pill.waiting { color: var(--wait); background: transparent; border-color: var(--line); }
+
+/* Week board */
+main { padding-block: 28px 56px; }
+.board-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.board-head > div { display: grid; gap: 6px; min-width: 0; }
+.gt { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.gt-row { display: grid; grid-template-columns: 110px minmax(150px, 1.1fr) 160px minmax(0, 2fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.gt-head { border-top: 0; background: var(--surface-2); font-family: var(--f-display); text-transform: uppercase; letter-spacing: .07em; font-size: 12.5px; font-weight: 600; color: var(--muted); padding-block: 9px; }
+.show-row { cursor: pointer; transition: background .2s; }
+.show-row:hover { background: var(--surface-2); }
+.show-row.flash { animation: flash 2.4s ease-out; }
+@keyframes flash { 0%, 30% { background: var(--accent-soft); } 100% { background: transparent; } }
+.c-date { font-family: var(--f-mono); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.c-act { display: grid; min-width: 0; }
+.c-act b { font-weight: 600; }
+.c-act small { color: var(--muted); font-size: 13px; }
+.c-open { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.c-open.quiet { color: var(--muted); font-weight: 400; }
+.c-link { text-align: right; }
+@media (max-width: 820px) {
+  .gt-head { display: none; }
+  .gt-row { grid-template-columns: 1fr auto; grid-template-areas: "date status" "act act" "open open" "link link"; gap: 4px 12px; }
+  .c-date { grid-area: date; } .c-act { grid-area: act; } .c-status { grid-area: status; } .c-open { grid-area: open; white-space: normal; } .c-link { grid-area: link; text-align: left; margin-top: 6px; }
+}
+.form-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; margin-bottom: 20px; display: grid; gap: 14px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label, .field .lab { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .07em; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.field input, .field select, textarea { width: 100%; min-width: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.field input:focus, .field select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.err { color: var(--bad); font-size: 14px; }
+.board-foot { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; color: var(--muted); font-size: 14px; }
+
+/* Show page */
+.back { margin-bottom: 14px; }
+.show-head { display: grid; gap: 10px; margin-bottom: 18px; }
+.show-title { display: flex; align-items: baseline; gap: 10px 14px; flex-wrap: wrap; }
+.show-title span { color: var(--muted); font-family: var(--f-display); font-size: 22px; font-weight: 500; }
+.status-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.note { font-size: 14px; color: var(--muted); }
+.issues { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.issues li { display: flex; gap: 8px; align-items: baseline; font-weight: 500; }
+.issues li::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 2px; transform: translateY(-1px); background: var(--warn); }
+.issues li.changed::before { background: var(--chg); }
+.issues li.flag::before { background: var(--bad); }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+.tabs button { background: none; border: 0; padding: 10px 14px; font-family: var(--f-display); font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.show-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+.col { display: grid; gap: 18px; min-width: 0; }
+@media (max-width: 960px) { .show-grid { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.banner { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--r); padding: 14px 16px; display: flex; gap: 12px 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.banner p { max-width: 60ch; }
+.sendbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* Stage plot */
+.plot-card { padding: 0; overflow: hidden; gap: 0; }
+.plot-card .card-head { padding: 14px 16px 10px; }
+.plot-scroll { overflow-x: auto; background: var(--deck); }
+.plot-scroll svg { display: block; width: 100%; min-width: 640px; height: auto; touch-action: pan-x pan-y; user-select: none; -webkit-user-select: none; }
+.deck { fill: var(--deck); stroke: var(--deck-edge); stroke-width: 2; }
+.deck-floor { fill: var(--deck-gear); opacity: .35; }
+.deck-grid { stroke: var(--deck-grid); stroke-width: 1; }
+.deck-label { fill: var(--deck-muted); font-family: var(--f-display); font-size: 15px; letter-spacing: .18em; font-weight: 600; text-transform: uppercase; }
+.spike { stroke: var(--pin); stroke-width: 4; }
+.gear { fill: var(--deck-gear); stroke: var(--deck-ink); stroke-width: 2.2; }
+.gear-thin { fill: none; stroke: var(--deck-ink); stroke-width: 1.6; opacity: .75; }
+.gear-dot { fill: var(--deck-ink); }
+.riser { fill: rgba(255,255,255,.035); stroke: var(--deck-muted); stroke-width: 2; stroke-dasharray: 9 6; }
+.riser-label { fill: var(--deck-muted); font-family: var(--f-display); font-size: 15px; letter-spacing: .1em; font-weight: 600; text-transform: uppercase; }
+.item { cursor: pointer; }
+.item.drag { cursor: grabbing; }
+.item.editable { cursor: grab; touch-action: none; }
+.hit { fill: transparent; }
+.sel { fill: none; stroke: var(--deck-accent); stroke-width: 2.5; stroke-dasharray: 6 5; }
+.tape { fill: var(--tape); }
+.tape-text { fill: var(--tape-ink); font-family: var(--f-display); font-size: 17px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+.ch-badge { fill: var(--deck-accent); font-family: var(--f-mono); font-size: 15px; font-weight: 500; }
+.mix-text { fill: var(--deck-ink); font-family: var(--f-mono); font-size: 14px; font-weight: 500; }
+.pin { fill: var(--pin); stroke: var(--deck); stroke-width: 3; }
+.pin-text { fill: var(--pin-ink); font-family: var(--f-mono); font-size: 14px; font-weight: 600; }
+.plot-empty { fill: var(--deck-muted); font-family: var(--f-body); font-size: 20px; }
+.plot-foot { padding: 10px 16px 14px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+
+/* Palette */
+.palette { display: flex; flex-wrap: wrap; gap: 8px; }
+.palette button { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; font-weight: 600; }
+.palette button:hover { border-color: var(--accent); }
+.palette small { color: var(--muted); font-weight: 400; font-family: var(--f-mono); font-size: 12px; }
+
+/* Item panel */
+.item-title { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.seg { justify-self: start; display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+.seg button { background: var(--surface); border: 0; padding: 7px 12px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.seg.ro button { cursor: default; }
+.kv { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px 12px; align-items: center; }
+.kv > .lab { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .07em; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.mini-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 14px; }
+.mini-list li { display: flex; gap: 10px; }
+.mini-list .mono { color: var(--accent); min-width: 2.2em; }
+.danger { color: var(--bad); }
+
+/* Threads */
+.thread { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 8px; background: var(--surface-2); }
+.thread.open { border-color: var(--warn); background: var(--warn-soft); }
+.thread-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.thread-head b { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .05em; font-size: 14.5px; }
+.msg { display: grid; gap: 1px; font-size: 14.5px; }
+.msg .who { font-size: 12.5px; color: var(--muted); }
+.msg .who b { color: var(--ink); font-weight: 600; }
+.composer { display: grid; gap: 8px; }
+.composer textarea { min-height: 62px; resize: vertical; }
+.composer .row { display: flex; justify-content: flex-end; gap: 8px; }
+.settled-line { font-size: 13.5px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+
+/* Tables */
+.tbl-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .07em; font-size: 12.5px; font-weight: 600; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: var(--surface-2); }
+tbody tr.on td { background: var(--accent-soft); }
+tbody tr.grp td { border-top: 2px solid var(--line); }
+td.ch { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--accent); width: 3em; }
+td.pv { font-family: var(--f-mono); font-size: 12.5px; color: var(--warn); }
+.cbadge { display: inline-block; background: var(--pin); color: var(--pin-ink); border-radius: 999px; font-size: 11.5px; font-weight: 700; padding: 0 6px; margin-left: 6px; font-family: var(--f-mono); }
+.tbl-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; font-weight: 600; }
+.over { color: var(--bad); }
+.fits { color: var(--ok); }
+
+/* House check */
+.hc { display: grid; gap: 9px; }
+.hc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: baseline; font-size: 14.5px; }
+.hc-row .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 13.5px; }
+.hc-row.bad .num, .hc-row.bad .nm { color: var(--bad); font-weight: 600; }
+.meter { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--ok); }
+.hc-row.bad .meter i { background: var(--bad); }
+.hc-sub { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+.hc-note { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+.clear-box { display: flex; gap: 8px; align-items: center; color: var(--ok); font-weight: 600; }
+
+/* House gear page */
+.gear-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+.num-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 10px; align-items: center; }
+.num-row input { width: 100%; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font-family: var(--f-mono); text-align: right; }
+.bl-row { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.bl-row:first-of-type { border-top: 0; padding-top: 0; }
+
+/* Patch sheet */
+.patch { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: clamp(16px, 3vw, 28px); display: grid; gap: 18px; max-width: 760px; }
+.patch-head { display: grid; gap: 6px; }
+.patch-head h2 { font-size: clamp(32px, 5vw, 44px); }
+.patch-meta { font-family: var(--f-mono); font-size: 14px; color: var(--muted); }
+.patch-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); column-gap: 28px; }
+.patch-list li { display: grid; grid-template-columns: 3ch minmax(0, 1fr) auto; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 17px; align-items: baseline; }
+.patch-list .ch { font-family: var(--f-mono); color: var(--accent); font-weight: 500; }
+.patch-list .src { font-weight: 600; min-width: 0; }
+.patch-list .mic { font-family: var(--f-mono); font-size: 13.5px; color: var(--muted); }
+.patch-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+
+/* Modal + toast */
+.scrim { position: fixed; inset: 0; background: rgba(10, 12, 18, .5); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); z-index: 30; }
+.modal { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; width: min(560px, 100%); display: grid; gap: 12px; }
+.linkrow { display: flex; gap: 8px; }
+.linkrow input { flex: 1; min-width: 0; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-family: var(--f-mono); font-size: 13px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.hint { font-size: 13.5px; color: var(--muted); }
+.toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; z-index: 40; width: min(460px, calc(100% - 32px)); pointer-events: none; }
+.toast { background: var(--ink); color: var(--bg); border-radius: 8px; padding: 10px 14px; font-size: 14.5px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+.boot { padding: 48px 16px; text-align: center; color: var(--muted); font-family: var(--f-body); }
+.empty { padding-block: 64px; display: grid; gap: 14px; justify-items: start; max-width: 640px; }
+.act-intro { display: grid; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .show-row.flash { animation: none; } * { transition: none !important; } }
+</style>
+
+<div id="app"><p class="boot">Loading the week board…</p></div>
+
+<script src="https://unpkg.com/htm@3.1.1/preact/standalone.umd.js"></script>
+<script>
+(function () {
+'use strict';
+// The page's own claude.ai link, used to build each act's advance link.
+const ARTIFACT_URL = 'https://claude.ai/artifact/98WX4cniBnZeEpmNhYWAuB';
+
+const H = window.htmPreact;
+const root = document.getElementById('app');
+if (!H) { root.innerHTML = '<p class="boot">The page script didn’t load. Check your connection and reload.</p>'; return; }
+const { html, render, useState, useEffect, useRef, useMemo } = H;
+
+// ---------- Helpers ----------
+const rid = () => Math.random().toString(36).slice(2, 10);
+const clone = o => JSON.parse(JSON.stringify(o));
+const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+function merge(a, b) { const out = { ...a }; for (const k in b) out[k] = isObj(b[k]) && isObj(a[k]) ? merge(a[k], b[k]) : b[k]; return out; }
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function parseDay(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+const fmtDay = s => { const d = parseDay(s); return `${DOW[d.getDay()]} ${MON[d.getMonth()]} ${d.getDate()}`; };
+function fmtClock(d) { let h = d.getHours(); const m = d.getMinutes(); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${String(m).padStart(2, '0')} ${ap}`; }
+const fmtStamp = iso => { const d = new Date(iso); return `${DOW[d.getDay()]} ${MON[d.getMonth()]} ${d.getDate()}, ${fmtClock(d)}`; };
+const dowOf = iso => DOW[new Date(iso).getDay()];
+const slugify = s => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'act';
+const plural = (n, w, p) => `${n} ${n === 1 ? w : (p || w + 's')}`;
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+const pad2 = n => String(n).padStart(2, '0');
+const actUrl = id => (ARTIFACT_URL || '') + '#act-' + id;
+
+// ---------- Gear catalog ----------
+// Each input row: [name, mic or DI, stand]. "{l}" becomes the item's label.
+const KICK_IN = ['Kick In', 'Beta 91A', 'Inside kick'], KICK = ['Kick', 'Beta 52A', 'Short boom'], KICK_OUT = ['Kick Out', 'Beta 52A', 'Short boom'];
+const SN_T = ['Snare Top', 'SM57', 'Short boom'], SN = ['Snare', 'SM57', 'Short boom'], SN_B = ['Snare Btm', 'SM57', 'Short boom'];
+const HAT = ['Hi-Hat', 'KM184', 'Short boom'], RACK = ['Rack Tom', 'e604', 'Clip'], FLOOR = ['Floor Tom', 'e604', 'Clip'];
+const OHL = ['OH L', 'KM184', 'Tall boom'], OHR = ['OH R', 'KM184', 'Tall boom'];
+const GEAR = {
+  drums: { name: 'Drum kit', noun: 'drum kit', backline: true, w: 150, h: 112, variants: {
+    full: { label: 'Full (9)', inputs: [KICK_IN, KICK_OUT, SN_T, SN_B, HAT, RACK, FLOOR, OHL, OHR] },
+    std: { label: 'Standard (7)', inputs: [KICK, SN, HAT, RACK, FLOOR, OHL, OHR] },
+    light: { label: 'Light (4)', inputs: [KICK, SN, OHL, OHR] } } },
+  perc: { name: 'Percussion', w: 96, h: 50, variants: {
+    four: { label: '4 mics', inputs: [['Conga L', 'SM57', 'Short boom'], ['Conga R', 'SM57', 'Short boom'], ['Bongos', 'SM57', 'Short boom'], ['Perc OH', 'KM184', 'Tall boom']] },
+    two: { label: '2 mics', inputs: [['Congas', 'SM57', 'Short boom'], ['Perc OH', 'KM184', 'Tall boom']] } } },
+  bass: { name: 'Bass rig', noun: 'bass amp', backline: true, w: 80, h: 50, inputs: [['{l} DI', 'DI', '—']] },
+  gtr: { name: 'Guitar amp', noun: 'guitar amp', backline: true, w: 80, h: 50, variants: {
+    one: { label: '1 mic', inputs: [['{l}', 'SM57', 'Short boom']] },
+    two: { label: '2 mics', inputs: [['{l} A', 'SM57', 'Short boom'], ['{l} B', 'SM57', 'Short boom']] } } },
+  acoustic: { name: 'Acoustic DI', w: 34, h: 26, inputs: [['{l}', 'DI', '—']] },
+  keys: { name: 'Keys', noun: 'keyboard stand', backline: true, w: 136, h: 36, variants: {
+    stereo: { label: 'Stereo (2 DI)', inputs: [['{l} L', 'DI', '—'], ['{l} R', 'DI', '—']] },
+    mono: { label: 'Mono (1 DI)', inputs: [['{l}', 'DI', '—']] } } },
+  tracks: { name: 'Tracks / laptop', w: 58, h: 40, variants: {
+    stereo: { label: 'Stereo (2 DI)', inputs: [['{l} L', 'DI', '—'], ['{l} R', 'DI', '—']] },
+    mono: { label: 'Mono (1 DI)', inputs: [['{l}', 'DI', '—']] } } },
+  horn: { name: 'Horn mic', w: 30, h: 30, inputs: [['{l}', 'SM57', 'Tall boom']] },
+  vox: { name: 'Vocal mic', w: 30, h: 30, inputs: [['{l}', 'SM58', 'Tall boom']] },
+  wedge: { name: 'Wedge', w: 74, h: 32, inputs: [] },
+  riser: { name: 'Drum riser', noun: 'drum riser', backline: true, w: 230, h: 170, inputs: [] },
+};
+const ORDER = ['drums', 'perc', 'bass', 'gtr', 'acoustic', 'keys', 'tracks', 'horn', 'vox', 'wedge', 'riser'];
+const PALETTE = ['vox', 'gtr', 'bass', 'keys', 'drums', 'riser', 'perc', 'horn', 'acoustic', 'tracks', 'wedge'];
+const MIC_MODELS = ['Beta 91A', 'Beta 52A', 'SM57', 'SM58', 'e604', 'KM184', 'DI'];
+const PHANTOM = new Set(['Beta 91A', 'KM184', 'DI']);
+const SLOT_RANK = { Headliner: 0, Support: 1, Opener: 2 };
+
+const firstVariant = t => GEAR[t].variants ? Object.keys(GEAR[t].variants)[0] : undefined;
+function variantOf(it) { const g = GEAR[it.t]; return g.variants ? (g.variants[it.v] || g.variants[firstVariant(it.t)]) : null; }
+function itemInputs(it) {
+  const g = GEAR[it.t]; if (!g) return [];
+  const tpl = g.variants ? variantOf(it).inputs : (g.inputs || []);
+  return tpl.map(([n, mic, stand]) => ({ name: n.replace('{l}', it.l || g.name), mic, stand, item: it.id }));
+}
+function inputList(items) {
+  const sorted = [...items].filter(i => GEAR[i.t]).sort((a, b) => ORDER.indexOf(a.t) - ORDER.indexOf(b.t) || a.x - b.x);
+  const rows = [], ranges = {}; let ch = 0;
+  for (const it of sorted) {
+    const ins = itemInputs(it); if (!ins.length) continue;
+    const start = ch + 1;
+    ins.forEach((r, i) => { ch++; rows.push({ ...r, ch, phantom: PHANTOM.has(r.mic), first: i === 0 }); });
+    ranges[it.id] = [start, ch];
+  }
+  return { rows, ranges };
+}
+function mixesOf(items) {
+  const m = new Map();
+  items.filter(i => i.t === 'wedge').forEach(w => { if (!m.has(w.mix)) m.set(w.mix, []); m.get(w.mix).push(w); });
+  return [...m.entries()].sort((a, b) => a[0] - b[0]);
+}
+// Positions as engineers write them: stage right is the audience's left.
+function stagePos(it) {
+  const hz = it.x < 0.36 ? 'SR' : it.x > 0.64 ? 'SL' : 'C';
+  const v = it.y > 0.62 ? 'D' : it.y < 0.38 ? 'U' : '';
+  if (hz === 'C') return v ? v + 'SC' : 'CS';
+  return v ? v + hz : hz;
+}
+
+function houseCheck(items, house) {
+  const { rows } = inputList(items);
+  const mixes = mixesOf(items).length;
+  const wedges = items.filter(i => i.t === 'wedge').length;
+  const mics = {}; rows.forEach(r => { mics[r.mic] = (mics[r.mic] || 0) + 1; });
+  const lines = [];
+  lines.push({ key: 'inputs', group: 'main', label: 'Inputs', need: rows.length, have: house.channels, text: `needs ${rows.length} inputs, house has ${house.channels}` });
+  lines.push({ key: 'mixes', group: 'main', label: 'Monitor mixes', need: mixes, have: house.mixes, text: `${mixes} mixes asked, house has ${house.mixes}` });
+  lines.push({ key: 'wedges', group: 'main', label: 'Wedges', need: wedges, have: house.wedges, text: `${wedges} wedges asked, house has ${house.wedges}` });
+  MIC_MODELS.forEach(m => {
+    if (!mics[m]) return;
+    const have = (house.mics && house.mics[m]) || 0, nm = m === 'DI' ? 'DI boxes' : m;
+    lines.push({ key: 'mic-' + m, group: 'mics', label: nm, need: mics[m], have, text: `${mics[m]} ${m === 'DI' ? 'DIs' : m} asked, house has ${have}` });
+  });
+  const fromHouse = {};
+  items.filter(i => GEAR[i.t] && GEAR[i.t].backline && i.src === 'house').forEach(i => { fromHouse[i.t] = (fromHouse[i.t] || 0) + 1; });
+  Object.keys(fromHouse).forEach(t => {
+    const bl = (house.backline && house.backline[t]) || { n: 0, note: '' }, need = fromHouse[t], noun = GEAR[t].noun;
+    lines.push({ key: 'bl-' + t, group: 'backline', label: 'House ' + noun, need, have: bl.n, note: bl.note,
+      text: bl.n ? `${need} house ${noun}s asked, house has ${bl.n}` : `asks for a house ${noun}; house has none` });
+  });
+  lines.forEach(l => { l.ok = l.need <= l.have; });
+  return { lines, flags: lines.filter(l => !l.ok), inputs: rows.length, mixes, wedges };
+}
+
+function diffItems(before, after) {
+  const A = new Map(before.map(i => [i.id, i])), B = new Map(after.map(i => [i.id, i])), out = [];
+  for (const [id, i] of B) {
+    const o = A.get(id), n = itemInputs(i).length, nm = i.l || GEAR[i.t].name;
+    if (!o) out.push(`added ${nm}${n ? ` (+${plural(n, 'input')})` : i.t === 'wedge' ? ` (mix ${i.mix})` : ''}`);
+    else if (o.v !== i.v || o.src !== i.src || o.mix !== i.mix || o.l !== i.l || o.t !== i.t) {
+      const d = n - itemInputs(o).length;
+      out.push(`changed ${nm}${d ? ` (${d > 0 ? '+' : '−'}${plural(Math.abs(d), 'input')})` : ''}`);
+    }
+  }
+  for (const [id, o] of A) if (!B.has(id)) out.push(`removed ${o.l || GEAR[o.t].name}`);
+  return out;
+}
+
+function threadsFor(showId, comments, items) {
+  const by = new Map();
+  Object.values(comments).filter(c => c.show === showId).forEach(c => { const k = c.item || ''; if (!by.has(k)) by.set(k, []); by.get(k).push(c); });
+  const names = new Map(items.map(i => [i.id, i.l || GEAR[i.t].name]));
+  return [...by.entries()].map(([item, cs]) => {
+    cs.sort((a, b) => a.at.localeCompare(b.at));
+    return { item, name: item ? (names.get(item) || cs[cs.length - 1].itemName || 'Removed item') : 'Whole show', comments: cs, open: cs.some(c => !c.resolved), last: cs[cs.length - 1] };
+  }).sort((a, b) => (b.open - a.open) || b.last.at.localeCompare(a.last.at));
+}
+
+function showStatus(s, st) {
+  const items = s.items || [];
+  const hc = houseCheck(items, st.venue.house);
+  const threads = threadsFor(s.id, st.comments, items).filter(t => t.open);
+  if (!s.submitted) {
+    if (!items.length) return { key: 'waiting', label: 'Waiting on act', hc, issues: [],
+      text: s.opened ? `Act opened the link ${dowOf(s.opened)}; nothing sent yet` : `Link sent ${dowOf(s.linkSent)}; act has not opened it` };
+    return { key: 'waiting', label: 'Waiting on act', hc, issues: [], text: hc.flags.length ? `Not sent yet · House check: ${hc.flags[0].text}` : `Act is filling in the plot (${plural(hc.inputs, 'input')} so far)` };
+  }
+  const issues = [];
+  if (s.locked) { const d = diffItems(s.lockedItems || [], items); if (d.length) issues.push({ kind: 'changed', text: 'Changed after lock: ' + d.join(', ') }); }
+  hc.flags.forEach(f => issues.push({ kind: 'flag', text: 'House check: ' + f.text }));
+  threads.forEach(t => issues.push({ kind: 'comment', text: `Comment on ${t.name.toLowerCase() === 'whole show' ? 'the show' : t.name}: ${t.last.text}` }));
+  if (!issues.length) return s.locked ? { key: 'locked', label: 'Locked', text: 'Nothing open', hc, issues }
+    : { key: 'ready', label: 'Ready to lock', text: 'House check clear, no open questions', hc, issues };
+  const key = issues[0].kind === 'changed' ? 'changed' : 'open';
+  return { key, label: key === 'changed' ? 'Changed after lock' : 'Open question', hc, issues,
+    text: issues[0].text + (issues.length > 1 ? `  (+${issues.length - 1} more)` : '') };
+}
+
+function sortedShows(st) {
+  return Object.values(st.shows).sort((a, b) => a.date.localeCompare(b.date) || (SLOT_RANK[a.slot] ?? 9) - (SLOT_RANK[b.slot] ?? 9));
+}
+function weekLabel(shows) {
+  if (!shows.length) return 'This week';
+  const d = parseDay(shows[0].date); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return `Week of ${MON[d.getMonth()]} ${d.getDate()}`;
+}
+
+function newItem(t, items) {
+  const same = items.filter(i => i.t === t).length, n = same + 1;
+  const spot = { vox: [0.5, 0.72], gtr: [0.78, 0.38], bass: [0.22, 0.38], keys: [0.76, 0.6], drums: [0.5, 0.22], riser: [0.5, 0.22], perc: [0.3, 0.2],
+    horn: [0.84, 0.66], acoustic: [0.42, 0.62], tracks: [0.14, 0.56], wedge: [0.5, 0.92] }[t] || [0.5, 0.5];
+  const label = { vox: n === 1 ? 'Lead vox' : `Vox ${n}`, gtr: `Gtr ${n}`, bass: n === 1 ? 'Bass' : `Bass ${n}`, keys: n === 1 ? 'Keys' : `Keys ${n}`,
+    drums: 'Drums', riser: 'Drum riser', perc: 'Perc', horn: `Horn ${n}`, acoustic: n === 1 ? 'Acoustic' : `Acoustic ${n}`, tracks: 'Tracks', wedge: 'Wedge' }[t];
+  const shift = t === 'riser' || t === 'drums' ? 0 : (same % 2 ? 1 : -1) * Math.ceil(same / 2) * 0.12;
+  const it = { id: t[0] + rid().slice(0, 5), t, l: label, x: Math.min(0.94, Math.max(0.06, spot[0] + shift)), y: spot[1] };
+  if (GEAR[t].variants) it.v = firstVariant(t);
+  if (GEAR[t].backline) it.src = t === 'riser' ? 'house' : 'bring';
+  if (t === 'wedge') it.mix = Math.max(0, ...items.filter(i => i.t === 'wedge').map(i => i.mix)) + 1;
+  return it;
+}
+
+// ---------- Sample week (also used by "Reset demo data") ----------
+function makeSeed() {
+  const I = (id, t, l, x, y, extra) => ({ id, t, l, x, y, ...(extra || {}) });
+  const W = (id, mix, x, y) => I(id, 'wedge', 'Wedge', x, y, { mix });
+  const venue = { name: 'The Low Room', city: 'Jersey City, NJ', cap: 350, house: {
+    channels: 24, mixes: 3, wedges: 4,
+    mics: { 'Beta 91A': 1, 'Beta 52A': 1, SM57: 10, SM58: 6, e604: 3, KM184: 4, DI: 6 },
+    backline: {
+      drums: { n: 1, note: 'Shell pack and hardware. Bring snare, cymbals, breakables.' },
+      bass: { n: 1, note: 'Ampeg SVT-CL head, 8×10 cab.' },
+      gtr: { n: 0, note: 'No house guitar amps.' },
+      keys: { n: 1, note: 'One X stand. No house keyboard.' },
+      riser: { n: 1, note: '8×8 ft, 16 in high, carpeted.' } } }, stamp: 'seed' };
+  const base = { opened: null, submitted: null, locked: null, lockedItems: null, items: [], stamp: 'seed' };
+  const S = (id, o) => [id, { ...base, id, ...o }];
+  const locked = (o, sub, lock) => ({ ...o, opened: sub, submitted: sub, locked: lock, lockedItems: clone(o.items) });
+
+  const marigold = [I('d1', 'drums', 'Drums', 0.5, 0.22, { v: 'std', src: 'bring' }), I('b1', 'bass', 'Bass', 0.2, 0.36, { src: 'bring' }),
+    I('g1', 'gtr', 'Gtr 1', 0.74, 0.32, { v: 'one', src: 'bring' }), I('g2', 'gtr', 'Gtr 2', 0.88, 0.44, { v: 'one', src: 'bring' }),
+    I('v1', 'vox', 'Lead vox', 0.5, 0.72), I('v2', 'vox', 'Vox 2', 0.24, 0.62), I('v3', 'vox', 'Vox 3', 0.74, 0.62),
+    W('w1', 1, 0.5, 0.91), W('w2', 2, 0.24, 0.89), W('w3', 3, 0.74, 0.89)];
+  const june = [I('a1', 'acoustic', 'Acoustic', 0.4, 0.6), I('k1', 'keys', 'Keys', 0.64, 0.56, { v: 'mono', src: 'house' }),
+    I('v1', 'vox', 'Vox 1', 0.4, 0.72), I('v2', 'vox', 'Vox 2', 0.64, 0.72), W('w1', 1, 0.4, 0.91), W('w2', 2, 0.64, 0.91)];
+  const lowlights = [I('d1', 'drums', 'Drums', 0.5, 0.22, { v: 'light', src: 'bring' }), I('b1', 'bass', 'Bass', 0.2, 0.38, { src: 'bring' }),
+    I('g1', 'gtr', 'Gtr', 0.8, 0.34, { v: 'one', src: 'bring' }), I('k1', 'keys', 'Keys', 0.78, 0.56, { v: 'stereo', src: 'bring' }),
+    I('v1', 'vox', 'Lead vox', 0.5, 0.72), I('v2', 'vox', 'BV bass', 0.22, 0.6), I('v3', 'vox', 'BV keys', 0.8, 0.72),
+    W('w1', 1, 0.5, 0.91), W('w2', 2, 0.22, 0.89), W('w3', 3, 0.8, 0.9), W('w4', 4, 0.68, 0.24)];
+  const sister = [I('r1', 'riser', 'Drum riser', 0.5, 0.2, { src: 'house' }), I('d1', 'drums', 'Drums', 0.5, 0.2, { v: 'std', src: 'house' }),
+    I('b1', 'bass', 'Bass', 0.16, 0.34, { src: 'bring' }), I('g1', 'gtr', 'Gtr 1', 0.84, 0.32, { v: 'one', src: 'bring' }),
+    I('g2', 'gtr', 'Gtr 2', 0.84, 0.5, { v: 'one', src: 'bring' }), I('k1', 'keys', 'Keys', 0.24, 0.54, { v: 'mono', src: 'bring' }),
+    I('v1', 'vox', 'Lead vox', 0.5, 0.72), I('v2', 'vox', 'BV 1', 0.28, 0.7), I('v3', 'vox', 'BV 2', 0.72, 0.7),
+    W('w1', 1, 0.5, 0.91), W('w2', 2, 0.28, 0.9), W('w3', 3, 0.72, 0.9)];
+  const quiet = [I('r1', 'riser', 'Drum riser', 0.5, 0.2, { src: 'house' }), I('d1', 'drums', 'Drums', 0.5, 0.2, { v: 'std', src: 'bring' }),
+    I('b1', 'bass', 'Bass', 0.18, 0.36, { src: 'bring' }), I('g1', 'gtr', 'Gtr', 0.82, 0.36, { v: 'one', src: 'bring' }),
+    I('k1', 'keys', 'Keys', 0.78, 0.58, { v: 'mono', src: 'bring' }), I('v1', 'vox', 'Lead vox', 0.5, 0.72), I('v2', 'vox', 'BV', 0.24, 0.64),
+    W('w1', 1, 0.5, 0.91), W('w2', 2, 0.24, 0.89), W('w3', 3, 0.78, 0.89)];
+  const pine = [I('a1', 'acoustic', 'Acoustic', 0.5, 0.6), I('v1', 'vox', 'Vox', 0.5, 0.72), W('w1', 1, 0.5, 0.91)];
+  // Velvet Cassette's plot from their last show: 26 inputs, two more than the room has.
+  const velvet = [I('r1', 'riser', 'Drum riser', 0.5, 0.19, { src: 'house' }), I('d1', 'drums', 'Drums', 0.5, 0.19, { v: 'full', src: 'bring' }),
+    I('p1', 'perc', 'Perc', 0.25, 0.17, { v: 'four' }), I('b1', 'bass', 'Bass', 0.1, 0.36, { src: 'bring' }),
+    I('t1', 'tracks', 'Tracks', 0.33, 0.43, { v: 'stereo' }), I('k1', 'keys', 'Keys', 0.24, 0.6, { v: 'stereo', src: 'bring' }),
+    I('g1', 'gtr', 'Gtr', 0.88, 0.3, { v: 'two', src: 'bring' }), I('h1', 'horn', 'Trumpet', 0.66, 0.6), I('h2', 'horn', 'Tenor sax', 0.78, 0.66),
+    I('v1', 'vox', 'Lead vox', 0.5, 0.75), I('v2', 'vox', 'BV keys', 0.3, 0.75), I('v3', 'vox', 'BV gtr', 0.9, 0.52), I('v4', 'vox', 'BV bass', 0.1, 0.6),
+    W('w1', 1, 0.5, 0.92), W('w2', 2, 0.2, 0.92), W('w3', 3, 0.72, 0.9), W('w4', 3, 0.9, 0.72)];
+
+  const shows = Object.fromEntries([
+    S('oct27-marigold', locked({ date: '2026-10-27', slot: 'Headliner', act: 'Marigold Static', actSlug: 'marigold-static', lineup: '5-piece', loadIn: '4:30 PM', doors: '7:00 PM', linkSent: '2026-10-13T14:02:00', items: marigold }, '2026-10-19T11:20:00', '2026-10-20T10:05:00')),
+    S('oct27-juneharbor', locked({ date: '2026-10-27', slot: 'Support', act: 'June Harbor', actSlug: 'june-harbor', lineup: 'duo', loadIn: '5:30 PM', doors: '7:00 PM', linkSent: '2026-10-13T14:05:00', items: june }, '2026-10-16T19:40:00', '2026-10-17T09:12:00')),
+    S('oct28-lowlights', { date: '2026-10-28', slot: 'Headliner', act: 'The Lowlights', actSlug: 'the-lowlights', lineup: '4-piece + keys', loadIn: '4:30 PM', doors: '7:00 PM', linkSent: '2026-10-14T10:30:00', opened: '2026-10-21T21:15:00', submitted: '2026-10-22T13:48:00', items: lowlights }),
+    S('oct29-sistersat', locked({ date: '2026-10-29', slot: 'Headliner', act: 'Sister Satellite', actSlug: 'sister-satellite', lineup: '6-piece', loadIn: '4:30 PM', doors: '7:00 PM', linkSent: '2026-10-15T09:00:00', items: sister }, '2026-10-20T16:02:00', '2026-10-21T10:44:00')),
+    S('oct30-velvet', { date: '2026-10-30', slot: 'Headliner', act: 'Velvet Cassette', actSlug: 'velvet-cassette', lineup: '7-piece', loadIn: '4:00 PM', doors: '7:00 PM', linkSent: '2026-10-23T09:15:00', items: [] }),
+    S('oct30-hollowpine', locked({ date: '2026-10-30', slot: 'Support', act: 'Hollow Pine', actSlug: 'hollow-pine', lineup: 'solo', loadIn: '5:30 PM', doors: '7:00 PM', linkSent: '2026-10-15T09:04:00', items: pine }, '2026-10-18T12:30:00', '2026-10-19T09:30:00')),
+    S('oct31-quietengine', { date: '2026-10-31', slot: 'Headliner', act: 'Quiet Engine', actSlug: 'quiet-engine', lineup: '5-piece', loadIn: '5:00 PM', doors: '8:00 PM', linkSent: '2026-10-16T11:00:00', opened: '2026-10-20T18:10:00', submitted: '2026-10-21T20:31:00', items: quiet }),
+  ]);
+  const C = (id, show, item, itemName, by, who, text, at, resolved) => [id, { id, show, item, itemName, by, who, text, at, resolved, stamp: 'seed' }];
+  const comments = Object.fromEntries([
+    C('c-seed-1', 'oct27-marigold', 'g2', 'Gtr 2', 'act', 'Marigold Static', 'Gtr 2 runs a half stack. OK to put it stage left?', '2026-10-19T11:24:00', true),
+    C('c-seed-2', 'oct27-marigold', 'g2', 'Gtr 2', 'venue', 'The Low Room', 'Yes. Keep it under 100 dB at the rail and we’re good.', '2026-10-19T15:02:00', true),
+    C('c-seed-3', 'oct31-quietengine', 'r1', 'Drum riser', 'venue', 'The Low Room', 'Own kit or house? Ours is a shell pack on the 8×8 riser.', '2026-10-22T10:18:00', false),
+  ]);
+  const acts = { 'velvet-cassette': { id: 'velvet-cassette', name: 'Velvet Cassette', items: velvet, savedFrom: 'their Oct 9 show', savedAt: '2026-10-09T23:40:00', stamp: 'seed' } };
+  return { venue, shows, comments, acts };
+}
+
+// ---------- Store: live db when the page has one, otherwise this tab only ----------
+const bus = { toast: () => {} };
+const store = (() => {
+  const COLS = ['shows', 'comments', 'acts'];
+  let state = { venue: null, shows: {}, comments: {}, acts: {}, ready: false, mode: 'connecting' };
+  const subs = new Set(), remote = new Set(), mine = new Set(), queues = {}, seen = {};
+  let db = null, connectedAt = 0;
+  const emit = () => subs.forEach(f => f(state));
+  const set = p => { state = { ...state, ...p }; emit(); };
+  function applyLocal(col, id, data, kind) {
+    if (col === 'venue') return set({ venue: kind === 'delete' ? null : kind === 'update' ? merge(state.venue || {}, data) : data });
+    const c = { ...state[col] };
+    if (kind === 'delete') delete c[id]; else c[id] = kind === 'update' ? merge(c[id] || {}, data) : { ...data, id };
+    set({ [col]: c });
+  }
+  function writeError(e) {
+    const code = e && e.code;
+    if (code === 'invalid_argument') bus.toast('This view can’t save changes. Ask the page owner for edit access.');
+    else if (code === 'quota_exceeded') bus.toast('The demo database is full. Reset the demo data to clear it.');
+    else bus.toast('Couldn’t save that change. Check your connection and try again.');
+  }
+  const retry = fn => fn().catch(e => e && e.code === 'unavailable' ? new Promise(r => setTimeout(r, 300 + Math.random() * 700)).then(fn) : Promise.reject(e));
+  function write(col, id, data, kind) {
+    if (kind !== 'delete') { const stamp = rid(); mine.add(stamp); data = { ...data, stamp }; }
+    if (!db) { applyLocal(col, id, data, kind); return Promise.resolve(); }
+    const ref = col === 'venue' ? db.doc('venue/main') : db.collection(col).doc(id);
+    const run = () => kind === 'delete' ? ref.delete() : kind === 'set' ? ref.set(data) : ref.update(data);
+    const key = col + '/' + id;
+    const p = (queues[key] || Promise.resolve()).then(() => retry(run)).catch(writeError);
+    queues[key] = p;
+    return p;
+  }
+  function liveError() { bus.toast('Lost the live connection. Reload the page to reconnect.'); set({ ready: true }); }
+  async function connect() {
+    let api = null;
+    try { if (window.claude && typeof window.claude.use === 'function') api = await window.claude.use('db'); } catch (e) { api = null; }
+    if (!api) { set({ ...makeSeed(), ready: true, mode: 'local' }); return; }
+    db = api; connectedAt = Date.now(); set({ mode: 'live' });
+    const pending = new Set(['venue', ...COLS]);
+    const first = k => { if (pending.delete(k) && !pending.size) state = { ...state, ready: true }; };
+    db.doc('venue/main').onSnapshot(s => {
+      const v = s.exists ? s.data() : null;
+      if (v && seen.venue && v.stamp && !mine.has(v.stamp) && Date.now() - connectedAt > 2500) remote.forEach(f => f('venue', v));
+      seen.venue = true; state = { ...state, venue: v }; first('venue'); emit();
+    }, liveError);
+    COLS.forEach(col => db.collection(col).onSnapshot(qs => {
+      const m = {}; qs.docs.forEach(d => { m[d.id] = { ...d.data(), id: d.id }; });
+      if (seen[col] && Date.now() - connectedAt > 2500) qs.docChanges().forEach(ch => {
+        if (ch.type === 'removed') return;
+        const d = ch.doc.data();
+        if (d && d.stamp && d.stamp !== 'seed' && !mine.has(d.stamp)) remote.forEach(f => f(col, { ...d, id: ch.doc.id }));
+      });
+      seen[col] = true; state = { ...state, [col]: m }; first(col); emit();
+    }, liveError));
+  }
+  async function reset() {
+    const s = makeSeed();
+    if (!db) { set({ ...s }); return; }
+    const jobs = [];
+    COLS.forEach(col => Object.keys(state[col]).forEach(id => { if (!s[col][id]) jobs.push(write(col, id, null, 'delete')); }));
+    jobs.push(write('venue', 'main', s.venue, 'set'));
+    COLS.forEach(col => Object.entries(s[col]).forEach(([id, d]) => jobs.push(write(col, id, d, 'set'))));
+    await Promise.all(jobs);
+  }
+  return {
+    get state() { return state; },
+    subscribe(f) { subs.add(f); return () => subs.delete(f); },
+    onRemote(f) { remote.add(f); return () => remote.delete(f); },
+    connect, reset,
+    setShow: (id, d) => write('shows', id, d, 'set'),
+    patchShow: (id, p) => write('shows', id, p, 'update'),
+    addComment: d => { const id = 'c' + Date.now().toString(36) + rid().slice(0, 4); return write('comments', id, { ...d, id }, 'set'); },
+    patchComment: (id, p) => write('comments', id, p, 'update'),
+    setAct: (slug, d) => write('acts', slug, d, 'set'),
+    patchVenue: p => write('venue', 'main', p, 'update'),
+  };
+})();
+
+function useStore() {
+  const [s, setS] = useState(store.state);
+  useEffect(() => { const off = store.subscribe(setS); setS(store.state); return off; }, []);
+  return s;
+}
+
+// ---------- Small pieces ----------
+const Pill = ({ k, label }) => html`<span class=${'pill ' + k}>${label}</span>`;
+
+function Toasts() {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    bus.toast = msg => { const id = rid(); setList(l => [...l.slice(-2), { id, msg }]); setTimeout(() => setList(l => l.filter(t => t.id !== id)), 4200); };
+  }, []);
+  return html`<div class="toasts" role="status" aria-live="polite">${list.map(t => html`<div key=${t.id} class="toast">${t.msg}</div>`)}</div>`;
+}
+
+// ---------- Stage plot ----------
+const SX = 40, SY = 46, SW = 920, SH = 470;
+const PX = x => SX + x * SW, PY = y => SY + y * SH;
+
+function GearShape({ it }) {
+  switch (it.t) {
+    case 'riser': return html`<rect class="riser" x="-115" y="-85" width="230" height="170" rx="3" />`;
+    case 'drums': return html`<g>
+      <ellipse class="gear-thin" cx="-60" cy="-34" rx="22" ry="8" /><ellipse class="gear-thin" cx="62" cy="-30" rx="24" ry="8" />
+      <circle class="gear" r="34" cy="6" /><circle class="gear" cx="-20" cy="-30" r="13" /><circle class="gear" cx="20" cy="-30" r="13" />
+      <circle class="gear" cx="-46" cy="20" r="14" /><circle class="gear" cx="50" cy="24" r="19" /><ellipse class="gear-thin" cx="-64" cy="2" rx="13" ry="5" /></g>`;
+    case 'perc': return html`<g><circle class="gear" cx="-24" cy="2" r="19" /><circle class="gear" cx="18" cy="-2" r="21" /><circle class="gear" cx="40" cy="16" r="9" /></g>`;
+    case 'bass': case 'gtr': return html`<g><rect class="gear" x="-40" y="-25" width="80" height="50" rx="4" />
+      <path class="gear-thin" d="M-30 -14 H30 M-30 -4 H30 M-30 6 H30 M-30 16 H30" /></g>`;
+    case 'keys': return html`<g><rect class="gear" x="-68" y="-18" width="136" height="36" rx="3" />
+      <path class="gear-thin" d=${Array.from({ length: 12 }, (_, i) => `M${-56 + i * 10.2} -8 V14`).join(' ')} /></g>`;
+    case 'tracks': return html`<g><rect class="gear" x="-24" y="-18" width="48" height="30" rx="3" /><rect class="gear" x="-29" y="12" width="58" height="7" rx="2" /></g>`;
+    case 'acoustic': return html`<g><rect class="gear" x="-17" y="-13" width="34" height="26" rx="3" /><text class="mix-text" text-anchor="middle" y="5" font-size="11">DI</text></g>`;
+    case 'vox': return html`<g><circle class="gear" r="14" /><circle class="gear-dot" r="5" /></g>`;
+    case 'horn': return html`<g><circle class="gear" r="14" /><path class="gear-thin" d="M-6 -6 L6 6 M6 -6 L-6 6" /></g>`;
+    case 'wedge': return html`<g><polygon class="gear" points="-37,15 37,15 26,-15 -26,-15" /><text class="mix-text" text-anchor="middle" y="5">M${it.mix}</text></g>`;
+    default: return null;
+  }
+}
+
+function Plot({ items, editable, sel, onSelect, onMove, ranges, pins }) {
+  const svg = useRef(null);
+  const [drag, setDrag] = useState(null);
+  const toPt = e => { const s = svg.current, p = s.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(s.getScreenCTM().inverse()); };
+  const down = (e, it) => {
+    e.stopPropagation(); onSelect(it.id);
+    if (!editable) return;
+    e.preventDefault();
+    const p = toPt(e);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+    setDrag({ id: it.id, ox: p.x - PX(it.x), oy: p.y - PY(it.y), x: it.x, y: it.y, moved: false });
+  };
+  const move = e => {
+    if (!drag) return;
+    const p = toPt(e);
+    const x = Math.min(0.97, Math.max(0.03, (p.x - drag.ox - SX) / SW)), y = Math.min(0.97, Math.max(0.03, (p.y - drag.oy - SY) / SH));
+    if (Math.abs(x - drag.x) + Math.abs(y - drag.y) > 0.002) setDrag({ ...drag, x, y, moved: true });
+  };
+  const up = () => { if (drag && drag.moved) onMove(drag.id, Math.round(drag.x * 1000) / 1000, Math.round(drag.y * 1000) / 1000); setDrag(null); };
+  const ordered = [...items].sort((a, b) => (a.t === 'riser' ? -1 : 0) - (b.t === 'riser' ? -1 : 0));
+  const grid = [];
+  for (let i = 1; i < 8; i++) grid.push(html`<line class="deck-grid" x1=${SX + i * SW / 8} y1=${SY} x2=${SX + i * SW / 8} y2=${SY + SH} />`);
+  for (let i = 1; i < 4; i++) grid.push(html`<line class="deck-grid" x1=${SX} y1=${SY + i * SH / 4} x2=${SX + SW} y2=${SY + i * SH / 4} />`);
+  return html`<svg ref=${svg} viewBox="0 0 1000 600" role="img" aria-label="Stage plot" onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up} onPointerDown=${() => onSelect(null)}>
+    <rect class="deck" x=${SX} y=${SY} width=${SW} height=${SH} rx="6" />
+    ${grid}
+    <path class="spike" d=${`M${SX + SW / 2 - 14} ${SY + SH - 2} H${SX + SW / 2 + 14} M${SX + SW / 2} ${SY + SH - 2} V${SY + SH - 18}`} />
+    <text class="deck-label" x="500" y="32" text-anchor="middle">Upstage</text>
+    <text class="deck-label" x="500" y="548" text-anchor="middle">Downstage · audience</text>
+    <text class="deck-label" x=${SX + SW / 2} y="580" text-anchor="middle" style="font-size:12px;letter-spacing:.12em">Center line</text>
+    <text class="deck-label" transform="translate(24 281) rotate(-90)" text-anchor="middle">Stage right</text>
+    <text class="deck-label" transform="translate(982 281) rotate(90)" text-anchor="middle">Stage left</text>
+    ${!items.length && html`<text class="plot-empty" x="500" y="290" text-anchor="middle">${editable ? 'Add gear below, then drag it where it sits on stage.' : 'No plot yet. The act hasn’t filled it in.'}</text>`}
+    ${ordered.map(it => {
+      const g = GEAR[it.t]; if (!g) return null;
+      const x = drag && drag.id === it.id ? drag.x : it.x, y = drag && drag.id === it.id ? drag.y : it.y;
+      const r = ranges[it.id], n = pins[it.id] || 0, w = g.w, h = g.h;
+      const lab = (it.l || g.name).toUpperCase(), tw = Math.max(36, lab.length * 9 + 14);
+      const isRiser = it.t === 'riser';
+      return html`<g key=${it.id} class=${'item' + (editable ? ' editable' : '') + (drag && drag.id === it.id ? ' drag' : '')} transform=${`translate(${PX(x)} ${PY(y)})`}
+          onPointerDown=${e => down(e, it)} tabindex="0" role="button" aria-label=${`${it.l || g.name}, ${g.name}`}
+          onKeyDown=${e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(it.id); } }}>
+        ${isRiser ? html`<rect class="hit" x=${-w / 2} y=${-h / 2} width=${w} height=${h} />` : html`<rect class="hit" x=${-w / 2 - 14} y=${-h / 2 - 22} width=${w + 28} height=${h + 52} />`}
+        <${GearShape} it=${it} />
+        ${sel === it.id && html`<rect class="sel" x=${-w / 2 - 8} y=${-h / 2 - 8} width=${w + 16} height=${h + 16} rx="6" />`}
+        ${isRiser ? html`<text class="riser-label" x=${-w / 2 + 10} y=${h / 2 - 10}>Riser</text>`
+          : html`<g transform=${`translate(0 ${h / 2 + 18})`}><rect class="tape" x=${-tw / 2} y="-12" width=${tw} height="23" rx="2" /><text class="tape-text" text-anchor="middle" y="6">${lab}</text></g>`}
+        ${r && html`<text class="ch-badge" text-anchor="middle" y=${-h / 2 - 9}>${r[0] === r[1] ? r[0] : `${r[0]}–${r[1]}`}</text>`}
+        ${n > 0 && html`<g transform=${`translate(${w / 2 + 4} ${-h / 2 - 2})`}><circle class="pin" r="13" /><text class="pin-text" text-anchor="middle" y="5">${n}</text></g>`}
+      </g>`;
+    })}
+  </svg>`;
+}
+
+// ---------- Questions pinned to gear ----------
+function Composer({ id, placeholder, cta, onSend }) {
+  const [text, setText] = useState('');
+  const send = e => { e.preventDefault(); const t = text.trim(); if (!t) return; onSend(t); setText(''); };
+  return html`<form class="composer" onSubmit=${send}>
+    <textarea id=${id} placeholder=${placeholder} value=${text} onInput=${e => setText(e.target.value)}
+      onKeyDown=${e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) send(e); }}></textarea>
+    <div class="row"><button class="btn sm" type="submit" disabled=${!text.trim()}>${cta}</button></div>
+  </form>`;
+}
+
+function Thread({ th, onSettle, onSelect, showName, compact }) {
+  if (!th.open && compact) return html`<div class="settled-line"><span>Settled · <b>${th.name}</b> (${plural(th.comments.length, 'message')})</span><button class="linkish" onClick=${() => onSettle(th, false)}>Reopen</button></div>`;
+  return html`<div class=${'thread' + (th.open ? ' open' : '')}>
+    ${showName && html`<div class="thread-head"><b>${th.item && onSelect ? html`<button class="linkish" onClick=${() => onSelect(th.item)}>${th.name}</button>` : th.name}</b>
+      <span class="note">${th.open ? 'Open' : 'Settled'}</span></div>`}
+    ${th.comments.map(c => html`<div key=${c.id} class="msg"><span class="who"><b>${c.who}</b> · ${fmtStamp(c.at)}</span><span>${c.text}</span></div>`)}
+    <div class="thread-head"><span></span>${th.open
+      ? html`<button class="btn-ghost sm" onClick=${() => onSettle(th, true)}>Mark settled</button>`
+      : html`<button class="linkish" onClick=${() => onSettle(th, false)}>Reopen</button>`}</div>
+  </div>`;
+}
+
+// ---------- Panels ----------
+function ItemPanel({ item, role, ranges, house, items, thread, onPatch, onDelete, onComment, onSettle, onClose }) {
+  const g = GEAR[item.t], act = role === 'act';
+  const [draft, setDraft] = useState(item.l);
+  useEffect(() => setDraft(item.l), [item.id, item.l]);
+  const commit = () => { const v = draft.trim(); if (v && v !== item.l) onPatch({ l: v }); else setDraft(item.l); };
+  const ins = itemInputs(item), r = ranges[item.id];
+  const bl = g.backline && house.backline ? house.backline[item.t] : null;
+  const maxMix = Math.max(0, ...items.filter(i => i.t === 'wedge').map(i => i.mix));
+  return html`<section class="card" aria-label="Selected item">
+    <div class="item-title">
+      <div><p class="eyebrow">${g.name} · ${stagePos(item)}${r ? ` · Ch ${r[0] === r[1] ? r[0] : r[0] + '–' + r[1]}` : ''}</p>
+        ${act ? html`<div class="field" style="margin-top:6px"><label for="item-label">Label</label>
+          <input id="item-label" value=${draft} onInput=${e => setDraft(e.target.value)} onBlur=${commit} onKeyDown=${e => { if (e.key === 'Enter') e.target.blur(); }} /></div>`
+          : html`<h2 style="margin-top:4px">${item.l}</h2>`}</div>
+      <button class="linkish" onClick=${onClose}>Close</button>
+    </div>
+    ${g.variants && html`<div class="kv"><span class="lab">Mic’d as</span>
+      <div class=${'seg' + (act ? '' : ' ro')}>${Object.entries(g.variants).map(([k, v]) => html`<button key=${k} aria-pressed=${(item.v || firstVariant(item.t)) === k ? 'true' : 'false'} disabled=${!act && (item.v || firstVariant(item.t)) !== k} onClick=${() => act && onPatch({ v: k })}>${v.label}</button>`)}</div></div>`}
+    ${g.backline && html`<div class="kv"><span class="lab">${item.t === 'keys' ? 'Stand' : 'Backline'}</span>
+      <div class=${'seg' + (act ? '' : ' ro')}>${[['bring', 'Act brings'], ['house', 'From house']].map(([k, lab]) => html`<button key=${k} aria-pressed=${item.src === k ? 'true' : 'false'} disabled=${!act && item.src !== k} onClick=${() => act && onPatch({ src: k })}>${lab}</button>`)}</div>
+      ${item.src === 'house' && html`<span></span><span class=${'note' + (bl && bl.n ? '' : ' danger')}>${bl && bl.n ? `House: ${bl.note}` : `The Low Room has no house ${g.noun}.`}</span>`}</div>`}
+    ${item.t === 'wedge' && html`<div class="kv"><label class="lab" for="item-mix">Mix</label>
+      ${act ? html`<select id="item-mix" value=${item.mix} onChange=${e => onPatch({ mix: Number(e.target.value) })} style="background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:7px 9px">
+        ${Array.from({ length: maxMix + (mixesOf(items).find(m => m[0] === item.mix)[1].length > 1 ? 1 : 0) }, (_, i) => i + 1).map(n => html`<option value=${n}>Mix ${n}${n > house.mixes ? ' (over house)' : ''}</option>`)}
+      </select>` : html`<span>Mix ${item.mix}</span>`}</div>`}
+    ${ins.length > 0 && html`<div><p class="eyebrow" style="margin-bottom:4px">Builds ${plural(ins.length, 'input')}</p>
+      <ul class="mini-list">${ins.map((x, i) => html`<li key=${i}><span class="mono">${r ? r[0] + i : '–'}</span><span>${x.name}</span><span class="muted">${x.mic}</span></li>`)}</ul></div>`}
+    <div style="display:grid;gap:8px">
+      <p class="eyebrow">Questions on ${item.l}</p>
+      ${thread ? html`<${Thread} th=${thread} onSettle=${onSettle} />` : html`<p class="note">Nothing pinned here yet.</p>`}
+      <${Composer} id=${'cmp-' + item.id} placeholder=${act ? `Ask The Low Room about ${item.l}…` : `Ask the act about ${item.l}…`} cta=${thread ? 'Reply' : 'Pin question'} onSend=${onComment} />
+    </div>
+    ${act && html`<div><button class="linkish danger" onClick=${onDelete}>Remove ${item.l} from the plot</button></div>`}
+  </section>`;
+}
+
+function HouseCheck({ hc, venue, role, go }) {
+  const groups = [['main', null], ['mics', 'Mics and DIs'], ['backline', 'From house backline']];
+  return html`<section class="card" aria-label="House check">
+    <div class="card-head"><h3>House check</h3><span class="note">vs. ${venue.name}</span></div>
+    ${hc.flags.length ? html`<ul class="issues">${hc.flags.map(f => html`<li key=${f.key} class="flag">${cap(f.text)}</li>`)}</ul>`
+      : html`<div class="clear-box">Everything fits this room.</div>`}
+    <div class="hc">${groups.map(([k, title]) => {
+      const ls = hc.lines.filter(l => l.group === k); if (!ls.length) return null;
+      return html`${title && html`<p class="hc-sub">${title}</p>`}${ls.map(l => html`<div key=${l.key} class=${'hc-row' + (l.ok ? '' : ' bad')}>
+        <span class="nm">${l.label}</span><span class="num">${l.need} / ${l.have}</span>
+        <span class="meter"><i style=${`width:${l.have ? Math.min(100, Math.round(l.need / l.have * 100)) : 100}%`}></i></span>
+        ${l.note && html`<span class="hc-note">${l.note}</span>`}</div>`)}`;
+    })}</div>
+    <p class="note">Asked / house has.${role === 'venue' ? html` <button class="linkish" onClick=${() => go({ view: 'gear' })}>Edit house gear</button>` : ''}</p>
+  </section>`;
+}
+
+function InputList({ rows, ranges, sel, onSelect, pins, house }) {
+  const over = rows.length > house.channels;
+  return html`<section class="card" aria-label="Input list">
+    <div class="card-head"><h3>Input list</h3><span class="note">Built from the plot. Tap a row to find it on stage.</span></div>
+    ${rows.length ? html`<div class="tbl-scroll"><table>
+      <thead><tr><th>Ch</th><th>Source</th><th>Mic / DI</th><th>Stand</th><th>48V</th></tr></thead>
+      <tbody>${rows.map(r => html`<tr key=${r.ch} class=${(sel === r.item ? 'on' : '') + (r.first && r.ch > 1 ? ' grp' : '')} onClick=${() => onSelect(r.item)}>
+        <td class="ch">${pad2(r.ch)}</td><td>${r.name}${r.first && pins[r.item] ? html`<span class="cbadge" title="Open questions">${pins[r.item]}</span>` : ''}</td><td>${r.mic}</td><td class="muted">${r.stand}</td><td class="pv">${r.phantom ? '48V' : ''}</td></tr>`)}</tbody>
+    </table></div>` : html`<p class="note">No inputs yet.</p>`}
+    <div class="tbl-foot"><span class=${over ? 'over' : 'fits'}>${plural(rows.length, 'input')} · house has ${house.channels}</span>${over ? html`<span class="over">${rows.length - house.channels} over</span>` : ''}</div>
+  </section>`;
+}
+
+function Mixes({ items, house }) {
+  const m = mixesOf(items);
+  return html`<section class="card" aria-label="Monitor mixes">
+    <div class="card-head"><h3>Monitor mixes</h3><span class=${'note ' + (m.length > house.mixes ? 'over' : '')}>${m.length} of ${house.mixes} house mixes</span></div>
+    ${m.length ? html`<ul class="mini-list">${m.map(([n, ws]) => html`<li key=${n}><span class="mono">M${n}</span><span>${plural(ws.length, 'wedge')} · ${ws.map(stagePos).join(', ')}</span></li>`)}</ul>` : html`<p class="note">No wedges on the plot.</p>`}
+  </section>`;
+}
+
+function Backline({ items, house }) {
+  const bl = items.filter(i => GEAR[i.t] && GEAR[i.t].backline);
+  return html`<section class="card" aria-label="Backline">
+    <div class="card-head"><h3>Backline</h3><span class="note">Who brings what</span></div>
+    ${bl.length ? html`<ul class="mini-list" style="gap:6px">${bl.map(i => html`<li key=${i.id} style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px">
+      <span><b>${i.l}</b></span><span class=${i.src === 'house' ? '' : 'muted'}>${i.src === 'house' ? 'From house' : 'Act brings'}</span>
+      ${i.src === 'house' && house.backline[i.t] && html`<span class="note" style="grid-column:1/-1">${house.backline[i.t].n ? house.backline[i.t].note : 'House has none.'}</span>`}</li>`)}</ul>`
+      : html`<p class="note">No backline on the plot.</p>`}
+  </section>`;
+}
+
+function PatchSheet({ s, st, rows, items, status }) {
+  const m = mixesOf(items), bl = items.filter(i => GEAR[i.t] && GEAR[i.t].backline);
+  const open = (status.issues || []).length;
+  return html`<article class="patch" aria-label="Patch sheet">
+    <div class="patch-head">
+      <p class="eyebrow">Patch sheet · ${st.venue.name}</p>
+      <h2>${s.act}</h2>
+      <p class="patch-meta">${fmtDay(s.date)} · ${s.slot} · Load-in ${s.loadIn} · Doors ${s.doors}</p>
+      <div class="status-line"><${Pill} k=${status.key} label=${status.label} />
+        <span class="note">${s.locked ? `Locked ${fmtStamp(s.locked)}` : s.submitted ? `Sent ${fmtStamp(s.submitted)}` : 'Not sent yet'}${open ? ` · ${plural(open, 'open item')}` : ''}</span></div>
+    </div>
+    ${rows.length ? html`<ol class="patch-list">${rows.map(r => html`<li key=${r.ch}><span class="ch">${pad2(r.ch)}</span><span class="src">${r.name}</span><span class="mic">${r.mic}${r.phantom ? ' · 48V' : ''}</span></li>`)}</ol>` : html`<p class="note">No inputs yet.</p>`}
+    <div class="patch-cols">
+      <div><h3 style="margin-bottom:6px">Mixes</h3><ul class="mini-list">${m.map(([n, ws]) => html`<li key=${n}><span class="mono">M${n}</span><span>${ws.map(stagePos).join(', ')}</span></li>`)}</ul></div>
+      <div><h3 style="margin-bottom:6px">Backline</h3><ul class="mini-list">${bl.map(i => html`<li key=${i.id}><span>${i.l}: ${i.src === 'house' ? 'house' : 'act brings'}</span></li>`)}</ul></div>
+    </div>
+  </article>`;
+}
+
+// ---------- Show page (venue and act share it) ----------
+function ShowView({ st, route, go, viaLink }) {
+  const s = st.shows[route.id];
+  const role = route.role || 'venue', act = role === 'act';
+  const [sel, setSel] = useState(null);
+  const [tab, setTab] = useState('advance');
+  if (!s) return html`<div class="wrap empty"><h1>That show isn’t on the board</h1><p class="lede">It may have been removed or the demo data was reset.</p>${!viaLink && html`<button class="btn" onClick=${() => go({ view: 'board' })}>Back to the week board</button>`}</div>`;
+  const items = s.items || [], house = st.venue.house;
+  const { rows, ranges } = inputList(items);
+  const realStatus = showStatus(s, st);
+  const hc = realStatus.hc;
+  // Before sending, the act sees the house check as its to-do list.
+  const status = act && !s.submitted ? { key: 'waiting', label: 'Not sent yet', hc, issues: hc.flags.map(f => ({ kind: 'flag', text: 'House check: ' + f.text })),
+    text: items.length ? 'House check is clear. Send it when it looks right.' : 'Start from your saved plot or add your gear below.' } : realStatus;
+  const threads = threadsFor(s.id, st.comments, items);
+  const pins = {}; threads.filter(t => t.open && t.item).forEach(t => { pins[t.item] = t.comments.filter(c => !c.resolved).length; });
+  const selItem = items.find(i => i.id === sel);
+  const who = act ? s.act : st.venue.name;
+  const save = p => store.patchShow(s.id, { ...p, by: role });
+  const patchItems = fn => save({ items: fn(clone(items)) });
+  const comment = (item, text) => store.addComment({ show: s.id, item: item ? item.id : '', itemName: item ? item.l : 'Whole show', by: role, who, text, at: new Date().toISOString(), resolved: false });
+  const settle = (th, resolved) => th.comments.forEach(c => { if (!!c.resolved !== resolved) store.patchComment(c.id, { resolved }); });
+  const saved = st.acts[s.actSlug];
+  const send = () => {
+    const now = new Date().toISOString();
+    save({ submitted: now, opened: s.opened || now });
+    store.setAct(s.actSlug, { id: s.actSlug, name: s.act, items: clone(items), savedFrom: `${fmtDay(s.date)} at ${st.venue.name}`, savedAt: now });
+    bus.toast(`Sent to ${st.venue.name}. Your plot is saved for your next venue.`);
+  };
+  const lock = () => { save({ locked: new Date().toISOString(), lockedItems: clone(items) }); bus.toast(`${s.act} is locked.`); };
+  const unlock = () => save({ locked: null, lockedItems: null });
+
+  let actions;
+  if (act) {
+    actions = s.submitted
+      ? html`<span class="note">${s.locked ? `Locked by ${st.venue.name} ${fmtStamp(s.locked)}. If you change anything, they see it flagged.` : `Sent ${fmtStamp(s.submitted)}. Edits go straight to ${st.venue.name}.`}</span>`
+      : html`<button class="btn" disabled=${!items.length} onClick=${send}>Send to ${st.venue.name}</button><span class="note">${items.length ? 'They see your plot, input list and backline the moment you send.' : 'Add your gear to the plot first.'}</span>`;
+  } else {
+    actions = html`
+      ${status.key === 'ready' && html`<button class="btn" onClick=${lock}>Lock this advance</button>`}
+      ${status.key === 'changed' && html`<button class="btn" onClick=${lock}>Accept changes and re-lock</button>`}
+      ${s.locked && status.key !== 'changed' && html`<button class="btn-ghost" onClick=${unlock}>Unlock</button>`}
+      ${status.key === 'open' && !s.locked && html`<span class="note">Settle the open items to lock this show.</span>`}
+      <button class="btn-ghost" onClick=${() => go({ view: 'link', id: s.id })}>Act link</button>
+      <button class="btn-ghost" onClick=${() => go({ view: 'show', id: s.id, role: 'act' })}>See the act’s page</button>`;
+  }
+
+  return html`<div class="wrap">
+    ${!viaLink && !act && html`<div class="back"><button class="linkish" onClick=${() => go({ view: 'board' })}>← Week board</button></div>`}
+    <div class="show-head">
+      ${act ? html`<div class="act-intro"><p class="eyebrow">${fmtDay(s.date)} · ${s.slot} · Load-in ${s.loadIn} · Doors ${s.doors}</p>
+          <div class="show-title"><h1>${s.act} at ${st.venue.name}</h1></div>
+          <p class="lede">Fill in your stage plot once. The input list builds itself, ${st.venue.name} checks it against their house gear, and any question gets settled on this page.</p></div>`
+        : html`<p class="eyebrow">${fmtDay(s.date)} · ${s.slot} · Load-in ${s.loadIn} · Doors ${s.doors}</p>
+          <div class="show-title"><h1>${s.act}</h1><span>${s.lineup}</span></div>`}
+      <div class="status-line"><${Pill} k=${status.key} label=${status.label} />${status.issues.length === 0 && html`<span class="note">${status.text}</span>`}</div>
+      ${status.issues.length > 0 && html`<ul class="issues">${status.issues.map((x, i) => html`<li key=${i} class=${x.kind}>${x.text}</li>`)}</ul>`}
+      <div class="actions sendbar">${actions}</div>
+    </div>
+    ${act && !items.length && saved && saved.items && saved.items.length > 0 && html`<div class="banner" style="margin-bottom:18px">
+      <p><b>You already have a plot.</b> Saved from ${saved.savedFrom}: ${plural(inputList(saved.items).rows.length, 'input')}, ${plural(mixesOf(saved.items).length, 'mix', 'mixes')}. Use it and adjust anything that changed.</p>
+      <button class="btn" onClick=${() => save({ items: clone(saved.items), opened: s.opened || new Date().toISOString() })}>Use my saved plot</button></div>`}
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected=${tab === 'advance' ? 'true' : 'false'} onClick=${() => setTab('advance')}>Advance</button>
+      <button role="tab" aria-selected=${tab === 'patch' ? 'true' : 'false'} onClick=${() => setTab('patch')}>Patch sheet</button>
+    </div>
+    ${tab === 'patch' ? html`<${PatchSheet} s=${s} st=${st} rows=${rows} items=${items} status=${status} />` : html`<div class="show-grid">
+      <div class="col">
+        <section class="card plot-card" aria-label="Stage plot">
+          <div class="card-head"><h3>Stage plot</h3><span class="note">${act ? 'Drag gear into place. Tap an item to edit it or ask about it.' : 'Tap any item to see its inputs or pin a question to it.'}</span></div>
+          <div class="plot-scroll"><${Plot} items=${items} editable=${act} sel=${sel} onSelect=${setSel} ranges=${ranges} pins=${pins}
+            onMove=${(id, x, y) => patchItems(a => a.map(i => i.id === id ? { ...i, x, y } : i))} /></div>
+          <div class="plot-foot"><span>${plural(rows.length, 'input')} · ${plural(hc.mixes, 'mix', 'mixes')} · ${plural(hc.wedges, 'wedge')}</span><span>Drawn from the audience. Numbers are console channels.</span></div>
+        </section>
+        ${act && html`<section class="card" aria-label="Add gear"><div class="card-head"><h3>Add to the plot</h3></div>
+          <div class="palette">${PALETTE.map(t => { const n = itemInputs({ t, v: firstVariant(t), l: '' }).length; return html`<button key=${t} onClick=${() => { const it = newItem(t, items); patchItems(a => [...a, it]); setSel(it.id); }}>+ ${GEAR[t].name}<small>${n ? n + ' in' : t === 'wedge' ? 'mix' : ''}</small></button>`; })}</div></section>`}
+        ${selItem && html`<${ItemPanel} item=${selItem} role=${role} ranges=${ranges} house=${house} items=${items} thread=${threads.find(t => t.item === selItem.id)}
+          onClose=${() => setSel(null)} onPatch=${p => patchItems(a => a.map(i => i.id === selItem.id ? { ...i, ...p } : i))}
+          onDelete=${() => { patchItems(a => a.filter(i => i.id !== selItem.id)); setSel(null); }}
+          onComment=${t => comment(selItem, t)} onSettle=${settle} />`}
+        <${InputList} rows=${rows} ranges=${ranges} sel=${sel} onSelect=${setSel} pins=${pins} house=${house} />
+      </div>
+      <aside class="col">
+        <${HouseCheck} hc=${hc} venue=${st.venue} role=${role} go=${go} />
+        <section class="card" aria-label="Questions">
+          <div class="card-head"><h3>Questions</h3><span class="note">${threads.filter(t => t.open).length} open</span></div>
+          ${threads.length ? threads.map(th => html`<${Thread} key=${th.item || 'show'} th=${th} showName=${true} compact=${true} onSettle=${settle} onSelect=${id => { setSel(id); }} />`)
+            : html`<p class="note">No questions yet. Tap an item on the plot to pin one to it.</p>`}
+          <p class="eyebrow">About the whole show</p>
+          <${Composer} id="cmp-show" placeholder=${act ? 'Parking, guest list, set times…' : 'Ask the act about anything else…'} cta="Ask" onSend=${t => comment(null, t)} />
+        </section>
+        <${Mixes} items=${items} house=${house} />
+        <${Backline} items=${items} house=${house} />
+      </aside>
+    </div>`}
+  </div>`;
+}
+
+// ---------- Week board ----------
+function AddShow({ done }) {
+  const [f, setF] = useState({ date: '', slot: 'Headliner', act: '', lineup: '', loadIn: '4:30 PM', doors: '7:00 PM' });
+  const [err, setErr] = useState('');
+  const up = k => e => setF({ ...f, [k]: e.target.value });
+  const submit = e => {
+    e.preventDefault();
+    if (!f.act.trim() || !f.date) { setErr('Add the act’s name and the show date.'); return; }
+    const d = parseDay(f.date), slug = slugify(f.act);
+    let id = `${MON[d.getMonth()].toLowerCase()}${d.getDate()}-${slug}`;
+    if (store.state.shows[id]) id += '-' + rid().slice(0, 3);
+    store.setShow(id, { id, ...f, act: f.act.trim(), lineup: f.lineup.trim() || 'lineup TBC', actSlug: slug, linkSent: new Date().toISOString(),
+      opened: null, submitted: null, locked: null, lockedItems: null, items: [], by: 'venue' });
+    done(id);
+  };
+  return html`<form class="form-card" onSubmit=${submit} aria-label="Add a show">
+    <div class="form-grid">
+      <div class="field"><label for="f-act">Act</label><input id="f-act" value=${f.act} onInput=${up('act')} placeholder="Band name" /></div>
+      <div class="field"><label for="f-date">Date</label><input id="f-date" type="date" value=${f.date} onInput=${up('date')} /></div>
+      <div class="field"><label for="f-slot">Slot</label><select id="f-slot" value=${f.slot} onChange=${up('slot')}><option>Headliner</option><option>Support</option><option>Opener</option></select></div>
+      <div class="field"><label for="f-lineup">Lineup</label><input id="f-lineup" value=${f.lineup} onInput=${up('lineup')} placeholder="5-piece" /></div>
+      <div class="field"><label for="f-load">Load-in</label><input id="f-load" value=${f.loadIn} onInput=${up('loadIn')} /></div>
+      <div class="field"><label for="f-doors">Doors</label><input id="f-doors" value=${f.doors} onInput=${up('doors')} /></div>
+    </div>
+    ${err && html`<p class="err">${err}</p>`}
+    <div class="actions"><button class="btn" type="submit">Create show and get the act link</button><button class="btn-ghost" type="button" onClick=${() => done(null)}>Cancel</button></div>
+  </form>`;
+}
+
+function Board({ st, go, flash }) {
+  const shows = sortedShows(st);
+  const rows = shows.map(s => [s, showStatus(s, st)]);
+  const locked = rows.filter(([, x]) => x.key === 'locked').length;
+  const [adding, setAdding] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const open = id => go({ view: 'show', id });
+  return html`<div class="wrap">
+    <div class="board-head">
+      <div><p class="eyebrow">${st.venue.name} · ${weekLabel(shows)}</p>
+        <h1>${locked} of ${shows.length} shows locked</h1>
+        <p class="lede">Each open show names what is missing. Open a show to see its plot, input list and questions.</p></div>
+      ${!adding && html`<button class="btn" onClick=${() => setAdding(true)}>Add a show</button>`}
+    </div>
+    ${adding && html`<${AddShow} done=${id => { setAdding(false); if (id) go({ view: 'link', id }); }} />`}
+    <div class="gt" role="table" aria-label="Shows this week">
+      <div class="gt-row gt-head" role="row"><span role="columnheader">Show</span><span role="columnheader">Act</span><span role="columnheader">Status</span><span role="columnheader">What is open</span><span></span></div>
+      ${rows.length ? rows.map(([s, x]) => html`<div key=${s.id} role="row" tabindex="0" class=${'gt-row show-row' + (flash[s.id] ? ' flash' : '')}
+          onClick=${() => open(s.id)} onKeyDown=${e => { if (e.key === 'Enter') open(s.id); }}>
+        <span class="c-date" role="cell">${fmtDay(s.date)}</span>
+        <span class="c-act" role="cell"><b>${s.act}</b><small>${s.slot} · ${s.lineup}</small></span>
+        <span class="c-status" role="cell"><${Pill} k=${x.key} label=${x.label} /></span>
+        <span class=${'c-open' + (x.key === 'locked' ? ' quiet' : '')} role="cell" title=${x.text}>${x.text}</span>
+        <span class="c-link" role="cell"><button class="btn-ghost sm" onClick=${e => { e.stopPropagation(); go({ view: 'link', id: s.id }); }}>Act link</button></span>
+      </div>`) : html`<div class="gt-row"><span style="grid-column:1/-1" class="note">No shows yet. Add one to send the act its advance link.</span></div>`}
+    </div>
+    <div class="board-foot">
+      <span>Sample week for the demo: fictional acts at a 350-cap room.</span>
+      ${confirm ? html`<span class="actions"><span>Replace everything with the sample week?</span><button class="btn sm" onClick=${() => { setConfirm(false); store.reset().then(() => bus.toast('Demo data reset to the sample week.')); }}>Reset</button><button class="btn-ghost sm" onClick=${() => setConfirm(false)}>Keep my changes</button></span>`
+        : html`<button class="linkish" onClick=${() => setConfirm(true)}>Reset demo data</button>`}
+    </div>
+  </div>`;
+}
+
+function HouseGear({ st }) {
+  const h = st.venue.house;
+  const num = (label, id, value, patch) => html`<div class="num-row"><label for=${id}>${label}</label>
+    <input id=${id} type="number" min="0" max="96" value=${value} onChange=${e => { const n = Math.max(0, Math.min(96, parseInt(e.target.value, 10) || 0)); if (n !== value) store.patchVenue({ house: patch(n) }); }} /></div>`;
+  return html`<div class="wrap" style="display:grid;gap:18px">
+    <div><p class="eyebrow">${st.venue.name} · ${st.venue.city} · ${st.venue.cap} cap</p><h1>House gear</h1>
+      <p class="lede" style="margin-top:6px">Every act’s plot is checked against this list. Change a number and every show on the board re-checks.</p></div>
+    <div class="gear-grid">
+      <section class="card"><h3>Console and monitors</h3>
+        ${num('Input channels', 'g-ch', h.channels, n => ({ channels: n }))}
+        ${num('Monitor mixes', 'g-mix', h.mixes, n => ({ mixes: n }))}
+        ${num('Wedges', 'g-wedge', h.wedges, n => ({ wedges: n }))}</section>
+      <section class="card"><h3>Mics and DIs</h3>
+        ${MIC_MODELS.map(m => html`<div key=${m}>${num(m === 'DI' ? 'DI boxes' : m + (PHANTOM.has(m) ? ' · 48V' : ''), 'g-' + slugify(m), (h.mics && h.mics[m]) || 0, n => ({ mics: { [m]: n } }))}</div>`)}</section>
+      <section class="card"><h3>Backline</h3>
+        ${['drums', 'bass', 'gtr', 'keys', 'riser'].map(t => { const b = (h.backline && h.backline[t]) || { n: 0, note: '' }; return html`<div key=${t} class="bl-row">
+          ${num('House ' + GEAR[t].noun + 's', 'g-bl-' + t, b.n, n => ({ backline: { [t]: { n } } }))}
+          <div class="field"><label for=${'g-note-' + t}>Note for acts</label><input id=${'g-note-' + t} value=${b.note} onChange=${e => store.patchVenue({ house: { backline: { [t]: { note: e.target.value } } } })} /></div></div>`; })}</section>
+    </div>
+  </div>`;
+}
+
+function LinkBox({ st, id, close, go }) {
+  const s = st.shows[id];
+  const ref = useRef(null);
+  const [copied, setCopied] = useState('');
+  useEffect(() => { const k = e => { if (e.key === 'Escape') close(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
+  if (!s) return null;
+  const url = actUrl(id);
+  const copy = () => {
+    try { navigator.clipboard.writeText(url).then(() => setCopied('yes'), () => { ref.current && ref.current.select(); setCopied('select'); }); }
+    catch (e) { ref.current && ref.current.select(); setCopied('select'); }
+  };
+  return html`<div class="scrim" onClick=${close}><div class="modal" role="dialog" aria-modal="true" aria-labelledby="lb-title" onClick=${e => e.stopPropagation()}>
+    <p class="eyebrow">Advance link · ${fmtDay(s.date)} · ${s.slot}</p>
+    <h2 id="lb-title">Send this to ${s.act}</h2>
+    <p>One link for the whole show. They fill in their plot once, and every question gets settled on that page instead of in a reply chain.</p>
+    <div class="linkrow"><input id="adv-link" ref=${ref} readonly value=${url} onFocus=${e => e.target.select()} /><button class="btn" onClick=${copy}>${copied === 'yes' ? 'Copied' : 'Copy'}</button></div>
+    ${copied === 'select' && html`<p class="hint">The link is selected. Press Ctrl+C or ⌘C to copy it.</p>`}
+    <div class="modal-actions"><button class="btn-ghost" onClick=${() => go({ view: 'show', id, role: 'act' })}>Preview the act’s page</button><button class="btn-ghost" onClick=${close}>Done</button></div>
+  </div></div>`;
+}
+
+// ---------- App ----------
+function initialRoute() {
+  const h = (location.hash || '').slice(1);
+  if (h.startsWith('act-')) return { view: 'show', id: h.slice(4), role: 'act', viaLink: true };
+  if (h.startsWith('show-')) return { view: 'show', id: h.slice(5) };
+  if (h === 'gear') return { view: 'gear' };
+  return { view: 'board' };
+}
+
+function App() {
+  const st = useStore();
+  const [route, setRoute] = useState(initialRoute);
+  const [linkFor, setLinkFor] = useState(null);
+  const [flash, setFlash] = useState({});
+  const routeRef = useRef(route); routeRef.current = route;
+  const marked = useRef(false);
+
+  useEffect(() => store.onRemote((col, d) => {
+    const r = routeRef.current, venueName = (store.state.venue && store.state.venue.name) || 'The venue';
+    if (col === 'shows') {
+      setFlash(f => ({ ...f, [d.id]: Date.now() }));
+      setTimeout(() => setFlash(f => { const n = { ...f }; delete n[d.id]; return n; }), 2500);
+      bus.toast(d.by === 'act' ? `${d.act} updated their advance.` : `${venueName} updated ${d.act}’s advance.`);
+    } else if (col === 'comments') {
+      bus.toast(`${d.who}: “${d.text.length > 80 ? d.text.slice(0, 78) + '…' : d.text}”`);
+    } else if (col === 'venue' && r.view !== 'gear') bus.toast(`${venueName} changed its house gear.`);
+  }), []);
+
+  // An act opening its link marks the show as opened, once.
+  useEffect(() => {
+    if (!st.ready || marked.current || !route.viaLink) return;
+    const s = st.shows[route.id];
+    if (!s) return;
+    marked.current = true;
+    if (!s.opened) store.patchShow(s.id, { opened: new Date().toISOString(), by: 'act' });
+  }, [st.ready, st.shows]);
+
+  const go = r => {
+    if (r.view === 'link') { setLinkFor(r.id); return; }
+    setLinkFor(null);
+    setRoute({ ...r, viaLink: r.role === 'act' && route.viaLink && r.id === route.id });
+    window.scrollTo(0, 0);
+  };
+
+  if (!st.ready) return html`<p class="boot">Connecting to the week board…</p><${Toasts} />`;
+  if (!st.venue) return html`<main class="wrap empty"><p class="eyebrow">Load-In</p><h1>Nothing on the board yet</h1>
+    <p class="lede">Load the sample week to see a 350-cap club’s shows, each with its stage plot, input list and open questions.</p>
+    <button class="btn" onClick=${() => store.reset()}>Load the sample week</button><${Toasts} /></main>`;
+
+  const actRole = route.view === 'show' && route.role === 'act';
+  const live = html`<span class=${'live' + (st.mode === 'live' ? ' on' : '')} title=${st.mode === 'live' ? 'Changes sync to everyone with this page open' : 'Changes stay in this browser tab'}>${st.mode === 'live' ? 'Live' : 'Local demo'}</span>`;
+  return html`
+    <header class="topbar"><div class="wrap topbar-in">
+      <button class="mark" onClick=${() => !route.viaLink && go({ view: 'board' })} aria-label="Load-In home"><i></i>LOAD-IN</button>
+      <span class="venue-name">${actRole ? `Advance for ${st.venue.name}` : `${st.venue.name} · ${st.venue.city} · ${st.venue.cap} cap`}</span>
+      ${!actRole && html`<nav class="nav" aria-label="Venue"><button aria-current=${route.view !== 'gear' ? 'page' : null} onClick=${() => go({ view: 'board' })}>Week board</button>
+        <button aria-current=${route.view === 'gear' ? 'page' : null} onClick=${() => go({ view: 'gear' })}>House gear</button></nav>`}
+      <span style=${actRole ? 'margin-left:auto' : ''}>${live}</span>
+    </div></header>
+    ${actRole && !route.viaLink && html`<div class="preview-band"><div class="wrap"><span>You’re previewing what ${st.shows[route.id] ? st.shows[route.id].act : 'the act'} sees. Edits here count as the act’s.</span>
+      <button class="linkish" onClick=${() => go({ view: 'show', id: route.id })}>Back to the venue view</button></div></div>`}
+    <main>
+      ${route.view === 'board' && html`<${Board} st=${st} go=${go} flash=${flash} />`}
+      ${route.view === 'gear' && html`<${HouseGear} st=${st} />`}
+      ${route.view === 'show' && html`<${ShowView} key=${route.id + route.role} st=${st} route=${route} go=${go} viaLink=${route.viaLink} />`}
+      ${route.viaLink && html`<div class="wrap board-foot" style="margin-top:32px"><span>Load-In · one page per show. Venues pay; acts never need an account.</span>
+        <button class="linkish" onClick=${() => { setRoute({ view: 'board' }); window.scrollTo(0, 0); }}>Venue sign-in</button></div>`}
+    </main>
+    ${linkFor && html`<${LinkBox} st=${st} id=${linkFor} close=${() => setLinkFor(null)} go=${go} />`}
+    <${Toasts} />`;
+}
+
+root.innerHTML = '';
+render(html`<${App} />`, root);
+store.connect();
+})();
+</script>
